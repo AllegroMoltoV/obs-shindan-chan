@@ -5,6 +5,7 @@ import path from 'node:path'
 import os from 'node:os'
 import { update } from './update'
 import fs from 'fs';
+import waitOn from 'wait-on';
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -50,36 +51,34 @@ async function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
     webPreferences: {
       preload,
-      // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
-      // nodeIntegration: true,
-
-      // Consider using contextBridge.exposeInMainWorld
-      // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
-      // contextIsolation: false,
+      // contextIsolation: false, // 必要に応じて
     },
-  })
+  });
 
-  if (VITE_DEV_SERVER_URL) { // #298
-    win.loadURL(VITE_DEV_SERVER_URL)
-    // Open devTool if the app is not packaged
-    win.webContents.openDevTools()
+  if (VITE_DEV_SERVER_URL) {
+    try {
+      // dev server の起動を待つ
+      await waitOn({ resources: [VITE_DEV_SERVER_URL], timeout: 10000 }); // 最大10秒待機
+      await win.loadURL(VITE_DEV_SERVER_URL);
+      win.webContents.openDevTools();
+    } catch (err) {
+      console.error("Vite dev server に接続できませんでした:", err);
+      win.loadFile(indexHtml); // フォールバック
+    }
   } else {
-    win.loadFile(indexHtml)
+    await win.loadFile(indexHtml);
   }
 
-  // Test actively push message to the Electron-Renderer
   win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', new Date().toLocaleString())
-  })
+    win?.webContents.send('main-process-message', new Date().toLocaleString());
+  });
 
-  // Make all links open with the browser, not with the application
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https:')) shell.openExternal(url)
-    return { action: 'deny' }
-  })
+    if (url.startsWith('https:')) shell.openExternal(url);
+    return { action: 'deny' };
+  });
 
-  // Auto update
-  update(win)
+  update(win);
 }
 
 app.whenReady().then(createWindow)
@@ -123,63 +122,82 @@ ipcMain.handle('open-win', (_, arg) => {
   }
 })
 
+// OBS Shindan Chan
+
+const watchedFiles = new Map<string, fs.FSWatcher>();
+
 ipcMain.handle("list-obs-profiles", async () => {
-  const userDir = os.homedir();
-  const profilesDir = path.join(userDir, "AppData", "Roaming", "obs-studio", "basic", "profiles");
+  try {
+    const userDir = os.homedir();
+    const profilesDir = path.join(userDir, "AppData", "Roaming", "obs-studio", "basic", "profiles");
 
-  if (!fs.existsSync(profilesDir)) return [];
+    if (!fs.existsSync(profilesDir)) {
+      console.warn("OBSのプロファイルディレクトリが存在しません");
+      return [];
+    }
 
-  const entries = fs.readdirSync(profilesDir, { withFileTypes: true });
-  const profiles = entries
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => entry.name);
+    const entries = fs.readdirSync(profilesDir, { withFileTypes: true });
+    const profiles = entries
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name);
 
-  return profiles;
+    return profiles;
+  } catch (err) {
+    console.error("OBSプロファイル読み取り中にエラー:", err);
+    return [];
+  }
 });
 
 ipcMain.handle("read-basic-ini", async (event, profileName: string) => {
-  const userDir = os.homedir();
-  const iniPath = path.join(
-      userDir,
-      "AppData",
-      "Roaming",
-      "obs-studio",
-      "basic",
-      "profiles",
-      profileName,
-      "basic.ini"
-  );
+  try {
+    const userDir = os.homedir();
+    const iniPath = path.join(
+        userDir,
+        "AppData",
+        "Roaming",
+        "obs-studio",
+        "basic",
+        "profiles",
+        profileName,
+        "basic.ini"
+    );
 
-  if (!fs.existsSync(iniPath)) {
-    throw new Error("basic.ini が見つかりません");
+    if (!fs.existsSync(iniPath)) {
+      throw new Error("basic.ini が見つかりません");
+    }
+
+    return fs.readFileSync(iniPath, "utf-8");
+  } catch (err) {
+    console.error("INI 読み込みエラー:", err);
+    throw err;
   }
-
-  const content = fs.readFileSync(iniPath, "utf-8");
-  return content;
 });
 
 ipcMain.handle("read-encoder-json", async (event, profileName: string) => {
-  const userDir = os.homedir();
-  const jsonPath = path.join(
-      userDir,
-      "AppData",
-      "Roaming",
-      "obs-studio",
-      "basic",
-      "profiles",
-      profileName,
-      "streamEncoder.json"
-  );
+  try {
+    const userDir = os.homedir();
+    const jsonPath = path.join(
+        userDir,
+        "AppData",
+        "Roaming",
+        "obs-studio",
+        "basic",
+        "profiles",
+        profileName,
+        "streamEncoder.json"
+    );
 
-  if (!fs.existsSync(jsonPath)) {
+    if (!fs.existsSync(jsonPath)) {
+      return null;
+    }
+
+    const content = fs.readFileSync(jsonPath, "utf-8");
+    return JSON.parse(content);
+  } catch (err) {
+    console.error("streamEncoder.json 読み込みエラー:", err);
     return null;
   }
-
-  const content = fs.readFileSync(jsonPath, "utf-8");
-  return JSON.parse(content);
 });
-
-const watchedFiles = new Map<string, fs.FSWatcher>();
 
 ipcMain.handle("watch-profile-files", (event, profileName: string) => {
   const win = BrowserWindow.getFocusedWindow();

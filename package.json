@@ -21,12 +21,15 @@
   },
   "dependencies": {
     "electron-updater": "^6.3.9",
-    "ini": "^5.0.0"
+    "ini": "^5.0.0",
+    "wait-on": "^8.0.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.2",
+    "@types/ini": "^4.1.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/wait-on": "^5.3.4",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.20",
     "electron": "^33.2.0",

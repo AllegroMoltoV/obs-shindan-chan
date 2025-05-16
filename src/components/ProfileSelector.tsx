@@ -1,16 +1,20 @@
+// src/components/ProfileSelector.tsx
+
 import React, { useEffect, useState } from "react";
 
 type Props = {
-    onProfileSelect: (profileName: string) => void;
+    onProfileSelect: (name: string) => void;
+    onProfilesLoaded: (profiles: string[]) => void;
 };
 
-const ProfileSelector: React.FC<Props> = ({ onProfileSelect }) => {
+export default function ProfileSelector({ onProfileSelect, onProfilesLoaded }: Props) {
     const [profiles, setProfiles] = useState<string[]>([]);
     const [selected, setSelected] = useState<string>("");
 
     useEffect(() => {
         window.electronAPI.getOBSProfiles().then((list) => {
             setProfiles(list);
+            onProfilesLoaded(list);
             if (list.length > 0) {
                 setSelected(list[0]);
                 onProfileSelect(list[0]);
@@ -23,18 +27,16 @@ const ProfileSelector: React.FC<Props> = ({ onProfileSelect }) => {
         onProfileSelect(e.target.value);
     };
 
-    return (
+    return profiles.length === 0 ? null : (
         <div>
             <label>OBS プロファイルを選んでね：</label>
             <select value={selected} onChange={handleChange}>
-                {profiles.map((profile) => (
-                    <option key={profile} value={profile}>
-                        {profile}
+                {profiles.map((name) => (
+                    <option key={name} value={name}>
+                        {name}
                     </option>
                 ))}
             </select>
         </div>
     );
-};
-
-export default ProfileSelector;
+}

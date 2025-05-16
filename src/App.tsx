@@ -6,15 +6,81 @@ import rules from "./assets/rules.json";
 export default function App() {
     const [selectedProfile, setSelectedProfile] = useState<string>("");
     const [iniData, setIniData] = useState<any | null>(null);
-    const [encoderJson, setEncoderJson] = useState<any>({}); // 初期値は空オブジェクト
+    const [encoderJson, setEncoderJson] = useState<any>({});
+    const [hasProfiles, setHasProfiles] = useState<boolean | null>(null);
+
+    const isObject = (val: any): val is Record<string, any> =>
+        val !== null && typeof val === 'object' && !Array.isArray(val);
+
+    const isValid = (val: any): boolean =>
+        val !== undefined && val !== null && val !== 0 && val !== '';
+
+    function mergeDefaults(
+        defaults: Record<string, any>,
+        source: Record<string, any>
+    ): Record<string, any> {
+        const result: Record<string, any> = {};
+
+        const keys = new Set<string>([
+            ...Object.keys(defaults),
+            ...Object.keys(source),
+        ]);
+
+        for (const key of keys) {
+            const defVal = defaults[key];
+            const srcVal = source[key];
+
+            if (isObject(defVal) && isObject(srcVal)) {
+                result[key] = mergeDefaults(defVal, srcVal);
+            } else {
+                result[key] = isValid(srcVal) ? srcVal : defVal;
+            }
+        }
+
+        return result;
+    }
+
+    function applyDefaults(parsedIni: Record<string, any>) {
+        const defaults = {
+            Output: { Mode: "Simple" },
+            Video: {
+                BaseCX: 1920,
+                BaseCY: 1080,
+                FPSNum: 30,
+                FPSDen: 1,
+            },
+            Audio: {
+                SampleRate: 48000,
+            },
+            SimpleOutput: {
+                VBitrate: 2500,
+            },
+            // if you want to cover AdvOut defaults, add:
+            AdvOut: {
+                FFVBitrate: 2500,
+                KeyIntSec: 0,
+                // …
+            },
+        };
+
+        // merge→ parsedIni wins wherever it has a defined value
+        return mergeDefaults(defaults, parsedIni);
+    }
 
     useEffect(() => {
         if (!selectedProfile) return;
 
         const load = () => {
-            window.electronAPI.readBasicINI(selectedProfile).then((text) => {
-                setIniData(ini.parse(text));
-            });
+            window.electronAPI.readBasicINI(selectedProfile)
+                .then((text) => {
+                    const parsed = ini.parse(text);
+                    const withDefaults = applyDefaults(parsed);
+                    setIniData(withDefaults);
+                })
+                .catch((err) => {
+                    console.error("INI 読み込み失敗:", err);
+                    setIniData(null);
+                });
 
             window.electronAPI.readEncoderJSON(selectedProfile).then((data) => {
                 setEncoderJson(data ?? {}); // ファイルがない場合でも空オブジェクトで処理継続
@@ -126,10 +192,16 @@ export default function App() {
             <h1>OBS診断ちゃん</h1>
             <p>「きょうも、ちゃんと診てあげるから……安心してね？」</p>
 
-            <ProfileSelector onProfileSelect={(name) => setSelectedProfile(name)}/>
-            <p><strong>選択されたプロファイル:</strong> {selectedProfile}</p>
+            <ProfileSelector
+                onProfileSelect={(name) => setSelectedProfile(name)}
+                onProfilesLoaded={(profiles) => setHasProfiles(profiles.length > 0)}
+            />
 
-            {iniData && (
+            {!selectedProfile && (
+                <p style={{ color: "red" }}>OBS を一度も起動していないか、プロファイルが削除されてるかも？</p>
+            )}
+
+            {selectedProfile && iniData && (
                 <div style={{marginTop: "2rem"}}>
                     <h2>診断結果</h2>
                     <p><strong>出力モード:</strong> {getOutputModeString(iniData)}</p>
@@ -142,6 +214,7 @@ export default function App() {
                     </ul>
                 </div>
             )}
+
         </div>
     );
 }
