@@ -228,3 +228,5 @@ ipcMain.handle("watch-profile-files", (event, profileName: string) => {
     }
   });
 });
+
+import './networkDiagnostics';

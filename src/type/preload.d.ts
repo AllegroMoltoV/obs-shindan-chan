@@ -8,6 +8,8 @@ export interface ElectronAPI {
     readEncoderJSON: (profileName: string) => Promise<{ rate_control: string; crf?: number } | null>;
     watchProfileFiles: (profileName: string) => void;
     onProfileFileUpdated: (callback: (event: any, filename: string) => void) => void;
+    getPingStats: () => Promise<{ avgPing: number | null, loss: number | null }>;
+    getNetworkType: () => Promise<{ type: string }>;
     // 他のAPIがあれば追記
 }
 

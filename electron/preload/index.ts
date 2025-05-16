@@ -7,6 +7,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   watchProfileFiles: (profileName: string) => ipcRenderer.invoke("watch-profile-files", profileName),
   onProfileFileUpdated: (callback: (event: any, filename: string) => void) =>
       ipcRenderer.on("profile-file-updated", callback),
+  getPingStats: () => ipcRenderer.invoke("get-ping-stats"),
+  getNetworkType: () => ipcRenderer.invoke("get-network-type"),
   // 他のAPIもあればここに一緒に記述
 });
 
