@@ -1,7 +1,13 @@
 import { ipcRenderer, contextBridge } from 'electron'
 
-contextBridge.exposeInMainWorld('electronAPI', {
-  selectFolder: () => ipcRenderer.invoke('select-folder')
+contextBridge.exposeInMainWorld("electronAPI", {
+  getOBSProfiles: () => ipcRenderer.invoke("list-obs-profiles"),
+  readBasicINI: (profileName: string) => ipcRenderer.invoke("read-basic-ini", profileName),
+  readEncoderJSON: (profileName: string) => ipcRenderer.invoke("read-encoder-json", profileName),
+  watchProfileFiles: (profileName: string) => ipcRenderer.invoke("watch-profile-files", profileName),
+  onProfileFileUpdated: (callback: (event: any, filename: string) => void) =>
+      ipcRenderer.on("profile-file-updated", callback),
+  // 他のAPIもあればここに一緒に記述
 });
 
 // --------- Expose some API to the Renderer process ---------

@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import os from 'node:os'
 import { update } from './update'
+import fs from 'fs';
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -122,11 +123,90 @@ ipcMain.handle('open-win', (_, arg) => {
   }
 })
 
-// ウィンドウ作成などのコードの後に追加
-ipcMain.handle('select-folder', async () => {
-  const result = await dialog.showOpenDialog({
-    properties: ['openDirectory']
-  });
+ipcMain.handle("list-obs-profiles", async () => {
+  const userDir = os.homedir();
+  const profilesDir = path.join(userDir, "AppData", "Roaming", "obs-studio", "basic", "profiles");
 
-  return result.canceled ? null : result.filePaths[0];
+  if (!fs.existsSync(profilesDir)) return [];
+
+  const entries = fs.readdirSync(profilesDir, { withFileTypes: true });
+  const profiles = entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name);
+
+  return profiles;
+});
+
+ipcMain.handle("read-basic-ini", async (event, profileName: string) => {
+  const userDir = os.homedir();
+  const iniPath = path.join(
+      userDir,
+      "AppData",
+      "Roaming",
+      "obs-studio",
+      "basic",
+      "profiles",
+      profileName,
+      "basic.ini"
+  );
+
+  if (!fs.existsSync(iniPath)) {
+    throw new Error("basic.ini が見つかりません");
+  }
+
+  const content = fs.readFileSync(iniPath, "utf-8");
+  return content;
+});
+
+ipcMain.handle("read-encoder-json", async (event, profileName: string) => {
+  const userDir = os.homedir();
+  const jsonPath = path.join(
+      userDir,
+      "AppData",
+      "Roaming",
+      "obs-studio",
+      "basic",
+      "profiles",
+      profileName,
+      "streamEncoder.json"
+  );
+
+  if (!fs.existsSync(jsonPath)) {
+    return null;
+  }
+
+  const content = fs.readFileSync(jsonPath, "utf-8");
+  return JSON.parse(content);
+});
+
+const watchedFiles = new Map<string, fs.FSWatcher>();
+
+ipcMain.handle("watch-profile-files", (event, profileName: string) => {
+  const win = BrowserWindow.getFocusedWindow();
+  if (!win) return;
+
+  const userDir = os.homedir();
+  const profileDir = path.join(
+      userDir,
+      "AppData",
+      "Roaming",
+      "obs-studio",
+      "basic",
+      "profiles",
+      profileName
+  );
+
+  const targets = ["basic.ini", "streamEncoder.json"];
+
+  targets.forEach((filename) => {
+    const fullPath = path.join(profileDir, filename);
+    if (watchedFiles.has(fullPath)) return;
+
+    if (fs.existsSync(fullPath)) {
+      const watcher = fs.watch(fullPath, { persistent: true }, () => {
+        win.webContents.send("profile-file-updated", filename);
+      });
+      watchedFiles.set(fullPath, watcher);
+    }
+  });
 });
