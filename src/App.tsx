@@ -3,6 +3,11 @@ import ProfileSelector from "./components/ProfileSelector";
 import * as ini from "ini";
 import rules from "./assets/rules.json";
 
+
+import okImg from './assets/ok.png';
+import warnImg from './assets/warn.png';
+import ngImg from './assets/ng.png';
+
 export default function App() {
     const [selectedProfile, setSelectedProfile] = useState<string>("");
     const [iniData, setIniData] = useState<any | null>(null);
@@ -127,7 +132,7 @@ export default function App() {
         return den === 0 ? 0 : Math.round((num / den) * 100) / 100;
     };
 
-    const diagnoseBitrate = (): string => {
+    const diagnoseBitrate = (): [string, boolean] => {
         const mode = getOutputMode(iniData);
         const width = Number(iniData?.Video?.BaseCX);
         const height = Number(iniData?.Video?.BaseCY);
@@ -138,61 +143,80 @@ export default function App() {
         const entry = rules.bitrateRecommendations.find(
             (r: any) => r.width === width && r.height === height && r.fps === fps
         );
-        if (!entry) return `ビットレート：${bitrate} kbps → 基準が見つかりません`;
-        if (bitrate < entry.min) return `ビットレート：${bitrate} kbps → ${rules.comment.low}`;
-        if (bitrate > entry.max) return `ビットレート：${bitrate} kbps → ${rules.comment.high}`;
-        return `ビットレート：${bitrate} kbps → ${rules.comment.ok}`;
+
+        if (!entry) return [`ビットレート：${bitrate} kbps → 判定不可！縦横サイズの数値が特殊かも？`, false];
+        if (bitrate < entry.min) return [`ビットレート：${bitrate} kbps → ${rules.comment.low}`, true];
+        if (bitrate > entry.max) return [`ビットレート：${bitrate} kbps → ${rules.comment.high}`, true];
+        return [`ビットレート：${bitrate} kbps → ${rules.comment.ok}`, false];
     };
 
-    const diagnoseRateControl = (): string => {
+    const diagnoseRateControl = (): [string, boolean] => {
         const mode = getOutputMode(iniData);
-        if (mode === "Simple") return "レート制御：CBR（固定） → 基本モードでは固定だよ！";
+        if (mode === "Simple") {
+            return ["レート制御：CBR（固定） → 基本モードでは固定だよ！", false];
+        }
         const rc = encoderJson?.rate_control?.toUpperCase() ?? "CBR";
         return rc === "CBR"
-            ? `レート制御：${rc} → ${rules.encoding.comment.ok}`
-            : `レート制御：${rc} → ${rules.encoding.comment.warn}`;
+            ? [`レート制御：${rc} → ${rules.encoding.comment.ok}`, false]
+            : [`レート制御：${rc} → ${rules.encoding.comment.warn}`, true];
     };
 
-    const diagnoseKeyframe = (): string => {
+    const diagnoseKeyframe = (): [string, boolean] => {
         const mode = getOutputMode(iniData);
-        if (mode === "Simple") return "キーフレーム：基本モードでは固定だよ！";
+        if (mode === "Simple") return ["キーフレーム：基本モードでは固定だよ！", false];
         const keyInt = encoderJson?.keyint_sec ?? Number(iniData?.AdvOut?.KeyIntSec ?? 0);
         if (keyInt === 0) {
-            return `キーフレーム間隔：自動 → ${rules.keyframeInterval.comment.ok}`;
+            return [`キーフレーム間隔：自動 → ${rules.keyframeInterval.comment.ok}`, false];
         } else if (keyInt === rules.keyframeInterval.expectedSeconds) {
-            return `キーフレーム間隔：${keyInt} 秒 → ${rules.keyframeInterval.comment.ok}`;
+            return [`キーフレーム間隔：${keyInt} 秒 → ${rules.keyframeInterval.comment.ok}`, false];
         }
-        return `キーフレーム間隔：${keyInt} 秒 → ${rules.keyframeInterval.comment.warn}`;
+        return [`キーフレーム間隔：${keyInt} 秒 → ${rules.keyframeInterval.comment.warn}`, true];
     };
 
-    const diagnoseProfile = (): string => {
+    const diagnoseProfile = (): [string, boolean] => {
         const mode = getOutputMode(iniData);
-        if (mode === "Simple") return "プロファイル：基本モードでは固定だよ！";
+        if (mode === "Simple") return ["プロファイル：基本モードでは固定だよ！", false];
         const profile = encoderJson?.profile ?? "default";
         const matched = rules.profile.allowed.includes(profile.toLowerCase());
         return matched
-            ? `プロファイル：${profile} → ${rules.profile.comment.ok}`
-            : `プロファイル：${profile} → ${rules.profile.comment.warn}`;
+            ? [`プロファイル：${profile} → ${rules.profile.comment.ok}`, false]
+            : [`プロファイル：${profile} → ${rules.profile.comment.warn}`, true];
     };
 
-    const diagnoseSampleRate = (): string => {
+    const diagnoseSampleRate = (): [string, boolean] => {
         const rate = Number(iniData?.Audio?.SampleRate ?? 0);
         return rate === rules.sampleRate.expected
-            ? `サンプルレート：${rate} Hz → ${rules.sampleRate.comment.ok}`
-            : `サンプルレート：${rate} Hz → ${rules.sampleRate.comment.warn}`;
+            ? [`サンプルレート：${rate} Hz → ${rules.sampleRate.comment.ok}`, false]
+            : [`サンプルレート：${rate} Hz → ${rules.sampleRate.comment.warn}`, true];
     };
 
-    const diagnosePingStats = (ping: number | null, loss: number | null): string => {
-        if (ping === null) return "ping 応答：測定できませんでした。環境を確認してみて！";
+    const diagnosePingStats = (ping: number | null, loss: number | null): [string, boolean] => {
+        if (ping === null) {
+            return ["ping 応答：測定できませんでした。環境を確認してみて！", false];
+        }
+
         let msg = `ping 応答時間：${ping} ms`;
-        if (ping > 100) msg += " → やや高め。配信中に遅延が出るかも";
-        else msg += " → 問題なし";
-        if (loss !== null && loss > 0) msg += `／パケットロス：${loss}% → 通信不安定の可能性`;
-        return msg;
+        let flag = false;
+        if (ping > 100) {
+            msg += " → やや高め。配信中に遅延が出るかも";
+            flag = true;
+        }
+        else {
+            msg += " → 問題なし！";
+        }
+        if (loss !== null && loss > 0) {
+            msg += `／パケットロス：${loss}% → 通信不安定の可能性`;
+            flag = true;
+        }
+        return [msg, flag];
     };
 
-    const diagnoseConnectionType = (type: string): string => {
-        return `接続種別：${type} → ${type === "Wi-Fi" ? "可能なら有線推奨！" : "問題なし"}`;
+    const diagnoseConnectionType = (type: string): [string, boolean] => {
+        if (type === "Wi-Fi") {
+            return [`接続種別：${type} → 可能なら有線推奨！`, true];
+        } else {
+            return [`接続種別：${type} → 問題なし！`, false];
+        }
     };
 
     const renderNetworkDiag = () => {
@@ -211,16 +235,43 @@ export default function App() {
             <div style={{ marginTop: "1rem" }}>
                 <h3>ネットワーク診断</h3>
                 <ul>
-                    <li>{diagnosePingStats(networkDiag.ping.avgPing, networkDiag.ping.loss)}</li>
-                    <li>{diagnoseConnectionType(networkDiag.type)}</li>
+                    <li>{diagnosePingStats(networkDiag.ping.avgPing, networkDiag.ping.loss)[0]}</li>
+                    <li>{diagnoseConnectionType(networkDiag.type)[0]}</li>
                 </ul>
             </div>
         );
     };
 
+    const getCharacterImage = (): string => {
+        if (!iniData) return ngImg;
+
+        const results = [
+            diagnoseBitrate(),
+            diagnoseRateControl(),
+            diagnoseKeyframe(),
+            diagnoseProfile(),
+            diagnoseSampleRate()
+        ];
+
+        const warnCount = results.filter(([, isWarn]) => isWarn).length;
+
+        if (warnCount >= 3) return ngImg;
+        if (warnCount >= 1) return warnImg;
+        return okImg;
+    };
+
     return (
         <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-            <h1>OBS診断ちゃん</h1>
+            <h1>
+                <img
+                src={getCharacterImage()}
+                alt="診断ちゃんの表情"
+                width={128}
+                height={128}
+                style={{ borderRadius: "50%", boxShadow: "0 0 10px rgba(0,0,0,0.2)" }}
+                />
+                OBS診断ちゃん
+            </h1>
             <p>「きょうも、ちゃんと診てあげるから……安心してね？」</p>
 
             <ProfileSelector
@@ -232,16 +283,23 @@ export default function App() {
                 <p style={{ color: "red" }}>OBS を一度も起動していないか、プロファイルが削除されてるかも？</p>
             )}
 
+            {selectedProfile && iniData === null && (
+                <p style={{ color: "red" }}>
+                    このプロファイルには `basic.ini` が存在しないか、読み込みに失敗しました。<br />
+                    OBS を一度起動してプロファイルを初期化してください。
+                </p>
+            )}
+
             {selectedProfile && iniData && (
                 <div style={{ marginTop: "2rem" }}>
                     <h2>診断結果</h2>
                     <p><strong>出力モード:</strong> {getOutputModeString(iniData)}</p>
                     <ul>
-                        <li>{diagnoseBitrate()}</li>
-                        <li>{diagnoseRateControl()}</li>
-                        <li>{diagnoseKeyframe()}</li>
-                        <li>{diagnoseProfile()}</li>
-                        <li>{diagnoseSampleRate()}</li>
+                        <li>{diagnoseBitrate()[0]}</li>
+                        <li>{diagnoseRateControl()[0]}</li>
+                        <li>{diagnoseKeyframe()[0]}</li>
+                        <li>{diagnoseProfile()[0]}</li>
+                        <li>{diagnoseSampleRate()[0]}</li>
                     </ul>
                     {renderNetworkDiag()}
                 </div>

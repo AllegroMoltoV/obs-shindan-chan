@@ -47,13 +47,17 @@ const indexHtml = path.join(RENDERER_DIST, 'index.html')
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: 'Main window',
-    icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
+    title: 'OBS診断ちゃん',
+    icon: path.join(__dirname, '../build/icon.ico'),
+    width: 1280,
+    height: 720,
     webPreferences: {
       preload,
       // contextIsolation: false, // 必要に応じて
     },
   });
+  win.setMenuBarVisibility(false);
+  win.setAutoHideMenuBar(true);
 
   if (VITE_DEV_SERVER_URL) {
     try {

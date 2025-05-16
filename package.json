@@ -1,9 +1,34 @@
 {
-  "name": "electron-vite-react",
-  "version": "2.2.0",
+  "name": "obs-shindan-chan",
+  "version": "1.0.0",
+  "productName": "OBS診断ちゃん",
+
+  "build": {
+    "appId": "com.allegromoltov.obsdiagnose",
+    "productName": "OBS診断ちゃん",
+    "directories": {
+      "output": "dist-release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist",
+      "dist-electron",
+      "build/icon.ico"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": "nsis",
+      "artifactName": "OBS診断ちゃん_${version}.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+
   "main": "dist-electron/main/index.js",
-  "description": "Electron Vite React boilerplate.",
-  "author": "草鞋没号 <308487730@qq.com>",
+  "description": "OBS の配信設定を診断するツールです",
+  "author": "AllegroMoltoV <v.molto.allegro@gmail.com>",
   "license": "MIT",
   "private": true,
   "debug": {
