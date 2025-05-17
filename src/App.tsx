@@ -23,7 +23,7 @@ export default function App() {
         val !== null && typeof val === "object" && !Array.isArray(val);
 
     const isValid = (val: any): boolean =>
-        val !== undefined && val !== null && val !== 0 && val !== "";
+        val !== undefined && val !== null && val !== "";
 
     function mergeDefaults(defaults: Record<string, any>, source: Record<string, any>) {
         const result: Record<string, any> = {};
@@ -44,8 +44,11 @@ export default function App() {
         const defaults = {
             Output: { Mode: "Simple" },
             Video: {
-                BaseCX: 1920,
-                BaseCY: 1080,
+                OutputCX: 1280,
+                OutputCY: 720,
+                FPSType: 0,
+                FPSCommon: 30,
+                FPSInt: 30,
                 FPSNum: 30,
                 FPSDen: 1,
             },
@@ -126,16 +129,27 @@ export default function App() {
             default: return "不明";
         }
     };
+    const extractNumericPrefix = (value: string | undefined): number => {
+        if (!value) return NaN;
+        const match = value.match(/^(\d+(\.\d+)?)/);
+        return match ? Number(match[0]) : NaN;
+    };
     const getFps = (ini: any): number => {
-        const num = Number(ini?.Video?.FPSNum ?? 0);
-        const den = Number(ini?.Video?.FPSDen ?? 1);
-        return den === 0 ? 0 : Math.round((num / den) * 100) / 100;
+        const fpsType = Number(ini?.Video?.FPSType);
+
+        if (fpsType === 0) {
+            return extractNumericPrefix(ini?.Video?.FPSCommon);
+        } else if (fpsType === 1) {
+            return Number(ini?.Video?.FPSInt);
+        } else {
+            return Number(ini?.Video?.FPSNum) / Number(ini?.Video?.FPSDen);
+        }
     };
 
     const diagnoseBitrate = (): [string, boolean] => {
         const mode = getOutputMode(iniData);
-        const width = Number(iniData?.Video?.BaseCX);
-        const height = Number(iniData?.Video?.BaseCY);
+        const width = Number(iniData?.Video?.OutputCX);
+        const height = Number(iniData?.Video?.OutputCY);
         const fps = getFps(iniData);
         const bitrate = mode === "Simple"
             ? Number(iniData?.SimpleOutput?.VBitrate ?? 0)
@@ -261,8 +275,8 @@ export default function App() {
     };
 
     const getBitrates = (): [number, number, number] | null => {
-        const width = Number(iniData?.Video?.BaseCX);
-        const height = Number(iniData?.Video?.BaseCY);
+        const width = Number(iniData?.Video?.OutputCX);
+        const height = Number(iniData?.Video?.OutputCY);
         const fps = getFps(iniData);
 
         const entry = rules.bitrateRecommendations.find(
@@ -309,7 +323,7 @@ export default function App() {
                     <h2>診断結果</h2>
 
                     <p><strong>現在の設定：</strong>
-                        解像度 {iniData?.Video?.BaseCX}×{iniData?.Video?.BaseCY} ／
+                        解像度 {iniData?.Video?.OutputCX}×{iniData?.Video?.OutputCY} ／
                         {getFps(iniData)} fps
                     </p>
 
@@ -328,6 +342,17 @@ export default function App() {
                         <li>{diagnoseSampleRate()[0]}</li>
                     </ul>
                     {renderNetworkDiag()}
+
+                    <p style={{ marginTop: "2rem", fontSize: "0.9rem", color: "#555" }}>
+                        ※ このアプリは
+                        <a href="https://support.google.com/youtube/answer/2853702?hl=ja" target="_blank" rel="noopener noreferrer">
+                            このページ
+                        </a>
+                        の情報に基づく YouTube LIVE 専用アプリです。 Twitch などの別プラットフォームについては別途ご確認ください。
+                    </p>
+                    <p style={{ fontSize: "0.8rem", color: "#999" }}>
+                        © 2025 AllegroMoltoV
+                    </p>
                 </div>
             )}
         </div>
