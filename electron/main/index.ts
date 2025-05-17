@@ -49,8 +49,8 @@ async function createWindow() {
   win = new BrowserWindow({
     title: 'OBS診断ちゃん',
     icon: path.join(__dirname, '../build/icon.ico'),
-    width: 1280,
-    height: 720,
+    width: 960,
+    height: 960,
     webPreferences: {
       preload,
       // contextIsolation: false, // 必要に応じて

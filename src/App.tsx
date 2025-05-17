@@ -260,6 +260,20 @@ export default function App() {
         return okImg;
     };
 
+    const getBitrates = (): [number, number, number] | null => {
+        const width = Number(iniData?.Video?.BaseCX);
+        const height = Number(iniData?.Video?.BaseCY);
+        const fps = getFps(iniData);
+
+        const entry = rules.bitrateRecommendations.find(
+            (r: any) => r.width === width && r.height === height && r.fps === fps
+        );
+
+        return entry ? [entry.recommended, entry.min, entry.max] : null;
+    };
+
+    const bitrates = getBitrates();
+
     return (
         <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
             <h1>
@@ -293,6 +307,18 @@ export default function App() {
             {selectedProfile && iniData && (
                 <div style={{ marginTop: "2rem" }}>
                     <h2>診断結果</h2>
+
+                    <p><strong>現在の設定：</strong>
+                        解像度 {iniData?.Video?.BaseCX}×{iniData?.Video?.BaseCY} ／
+                        {getFps(iniData)} fps
+                    </p>
+
+                    {bitrates !== null ? (
+                        <p><strong>おすすめビットレート：</strong> {bitrates[0]} kbps (最小: {bitrates[1]} kbps - 最大: {bitrates[2]} kbps)</p>
+                    ) : (
+                        <p><strong>おすすめビットレート：</strong> 対応表に該当なし</p>
+                    )}
+
                     <p><strong>出力モード:</strong> {getOutputModeString(iniData)}</p>
                     <ul>
                         <li>{diagnoseBitrate()[0]}</li>

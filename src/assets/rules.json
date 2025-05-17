@@ -1,13 +1,13 @@
 {
   "bitrateRecommendations": [
-    { "width": 3840, "height": 2160, "fps": 60, "min": 10000, "max": 40000 },
-    { "width": 3840, "height": 2160, "fps": 30, "min": 8000,  "max": 35000 },
-    { "width": 2560, "height": 1440, "fps": 60, "min": 6000,  "max": 30000 },
-    { "width": 2560, "height": 1440, "fps": 30, "min": 5000,  "max": 25000 },
-    { "width": 1920, "height": 1080, "fps": 60, "min": 4000,  "max": 12000 },
-    { "width": 1920, "height": 1080, "fps": 30, "min": 3000,  "max": 10000 },
-    { "width": 1280, "height": 720,  "fps": 60, "min": 3000,  "max": 8000 },
-    { "width": 1280, "height": 720,  "fps": 30, "min": 3000,  "max": 8000 }
+    { "width": 3840, "height": 2160, "fps": 60, "min": 10000, "max": 40000, "recommended": 35000 },
+    { "width": 3840, "height": 2160, "fps": 30, "min": 8000,  "max": 35000, "recommended": 30000 },
+    { "width": 2560, "height": 1440, "fps": 60, "min": 6000,  "max": 30000, "recommended": 24000 },
+    { "width": 2560, "height": 1440, "fps": 30, "min": 5000,  "max": 25000, "recommended": 15000 },
+    { "width": 1920, "height": 1080, "fps": 60, "min": 4000,  "max": 12000, "recommended": 10000 },
+    { "width": 1920, "height": 1080, "fps": 30, "min": 3000,  "max": 10000, "recommended": 8000 },
+    { "width": 1280, "height": 720,  "fps": 60, "min": 3000,  "max": 8000, "recommended": 6000 },
+    { "width": 1280, "height": 720,  "fps": 30, "min": 3000,  "max": 8000, "recommended": 4000 }
   ],
   "comment": {
     "ok": "ビットレートは適正範囲に収まってるよ！いい感じ〜！",
