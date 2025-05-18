@@ -50,7 +50,7 @@ async function createWindow() {
     title: 'OBS診断ちゃん',
     icon: path.join(__dirname, '../build/icon.ico'),
     width: 960,
-    height: 960,
+    height: 1280,
     webPreferences: {
       preload,
       // contextIsolation: false, // 必要に応じて

@@ -159,10 +159,10 @@ export default function App() {
             (r: any) => r.width === width && r.height === height && r.fps === fps
         );
 
-        if (!entry) return [`ビットレート：${bitrate} kbps → 判定不可！縦横サイズの数値が特殊かも？`, false];
-        if (bitrate < entry.min) return [`ビットレート：${bitrate} kbps → ${rules.comment.low}`, true];
-        if (bitrate > entry.max) return [`ビットレート：${bitrate} kbps → ${rules.comment.high}`, true];
-        return [`ビットレート：${bitrate} kbps → ${rules.comment.ok}`, false];
+        if (!entry) return [`映像ビットレート：${bitrate} kbps → 判定不可！縦横サイズの数値が特殊かも？`, false];
+        if (bitrate < entry.min) return [`映像ビットレート：${bitrate} kbps → ${rules.comment.low}`, true];
+        if (bitrate > entry.max) return [`映像ビットレート：${bitrate} kbps → ${rules.comment.high}`, true];
+        return [`映像ビットレート：${bitrate} kbps → ${rules.comment.ok}`, false];
     };
 
     const diagnoseRateControl = (): [string, boolean] => {
@@ -198,11 +198,32 @@ export default function App() {
             : [`プロファイル：${profile} → ${rules.profile.comment.warn}`, true];
     };
 
+    const getAudioChannelType = (ini: any): "stereo" | "surround" | "other" => {
+        const raw = ini?.Audio?.ChannelSetup?.toLowerCase() ?? "";
+        if (raw.includes("5.1")) return "surround";
+        if (raw.includes("7.1")) return "surround";
+        if (raw.includes("stereo")) return "stereo";
+        return "other";
+    };
+
     const diagnoseSampleRate = (): [string, boolean] => {
         const rate = Number(iniData?.Audio?.SampleRate ?? 0);
-        return rate === rules.sampleRate.expected
-            ? [`サンプルレート：${rate} Hz → ${rules.sampleRate.comment.ok}`, false]
-            : [`サンプルレート：${rate} Hz → ${rules.sampleRate.comment.warn}`, true];
+        const channelType = getAudioChannelType(iniData);
+        const expectedRate = rules.audio[channelType === "other" ? "stereo" : channelType].sampleRate;
+        const comment = rules.audio[channelType].comment.sampleRate;
+        return rate === expectedRate
+            ? [`サンプルレート：${rate} Hz → OK！`, false]
+            : [`サンプルレート：${rate} Hz → ${comment}`, true];
+    };
+
+    const diagnoseAudioBitrate = (): [string, boolean] => {
+        const channelType = getAudioChannelType(iniData);
+        const expectedBitrate = rules.audio[channelType === "other" ? "stereo" : channelType].bitrate;
+        const actualBitrate = Number(iniData?.SimpleOutput?.ABitrate ?? 0);
+        const comment = rules.audio[channelType].comment.bitrate;
+        return actualBitrate === expectedBitrate
+            ? [`音声ビットレート：${actualBitrate} kbps → OK！`, false]
+            : [`音声ビットレート：${actualBitrate} kbps → ${comment}`, true];
     };
 
     const diagnosePingStats = (ping: number | null, loss: number | null): [string, boolean] => {
@@ -288,6 +309,9 @@ export default function App() {
     };
 
     const bitrates = getBitrates();
+    const channelType = getAudioChannelType(iniData);
+    const expectedRate = rules.audio[channelType === "other" ? "stereo" : channelType].sampleRate;
+    const expectedBitrate = rules.audio[channelType === "other" ? "stereo" : channelType].bitrate;
 
     return (
         <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
@@ -327,12 +351,30 @@ export default function App() {
                         解像度 {iniData?.Video?.OutputCX}×{iniData?.Video?.OutputCY} ／
                         {getFps(iniData)} fps
                     </p>
+                    <ul>
+                        {bitrates !== null ? (
+                            <li><strong>おすすめビットレート：</strong> {bitrates[0]} kbps (最小: {bitrates[1]} kbps - 最大: {bitrates[2]} kbps)</li>
+                        ) : (
+                            <li><strong>おすすめビットレート：</strong> 対応表に該当なし</li>
+                        )}
+                    </ul>
 
-                    {bitrates !== null ? (
-                        <p><strong>おすすめビットレート：</strong> {bitrates[0]} kbps (最小: {bitrates[1]} kbps - 最大: {bitrates[2]} kbps)</p>
-                    ) : (
-                        <p><strong>おすすめビットレート：</strong> 対応表に該当なし</p>
-                    )}
+                    <p><strong>音声チャンネル設定：</strong>
+                        {iniData?.Audio?.ChannelSetup ?? "Stereo"}
+                    </p>
+                    <ul>
+                        {expectedRate !== null ? (
+                            <li><strong>おすすめサンプルレート：</strong> {expectedRate} Hz</li>
+                        ) : (
+                            <li><strong>おすすめサンプルレート：</strong> 対応表に該当なし</li>
+                        )}
+
+                        {expectedBitrate !== null ? (
+                            <li><strong>おすすめビットレート：</strong> {expectedBitrate} kbps</li>
+                        ) : (
+                            <li><strong>おすすめビットレート：</strong> 対応表に該当なし</li>
+                        )}
+                    </ul>
 
                     <p><strong>出力モード:</strong> {getOutputModeString(iniData)}</p>
                     <ul>
@@ -341,6 +383,7 @@ export default function App() {
                         <li>{diagnoseKeyframe()[0]}</li>
                         <li>{diagnoseProfile()[0]}</li>
                         <li>{diagnoseSampleRate()[0]}</li>
+                        <li>{diagnoseAudioBitrate()[0]}</li>
                     </ul>
                     {renderNetworkDiag()}
 

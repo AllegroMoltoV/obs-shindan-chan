@@ -35,11 +35,30 @@
       "warn": "プロファイルは main や high がおすすめだよ！"
     }
   },
-  "sampleRate": {
-    "expected": 48000,
-    "comment": {
-      "ok": "音声サンプリングレートも問題なし！",
-      "warn": "48kHz がおすすめかも"
+  "audio": {
+    "stereo": {
+      "sampleRate": 44100,
+      "bitrate": 128,
+      "comment": {
+        "sampleRate": "ステレオ音声には 44.1kHz が推奨だよ！",
+        "bitrate": "ステレオ音声には 128kbps がちょうどいいね！"
+      }
+    },
+    "surround": {
+      "sampleRate": 48000,
+      "bitrate": 384,
+      "comment": {
+        "sampleRate": "サラウンド音声には 48kHz が推奨されてるよ！",
+        "bitrate": "サラウンド音声には 384kbps が推奨らしいよ！"
+      }
+    },
+    "other": {
+      "sampleRate": 44100,
+      "bitrate": 128,
+      "comment": {
+        "sampleRate": "44.1kHz にしておくのが吉！",
+        "bitrate": "128kbps がちょうどいいと思う！"
+      }
     }
   }
 }
