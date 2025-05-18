@@ -219,7 +219,10 @@ export default function App() {
     const diagnoseAudioBitrate = (): [string, boolean] => {
         const channelType = getAudioChannelType(iniData);
         const expectedBitrate = rules.audio[channelType === "other" ? "stereo" : channelType].bitrate;
-        const actualBitrate = Number(iniData?.SimpleOutput?.ABitrate ?? 0);
+        const mode = getOutputMode(iniData);
+        const actualBitrate = mode === "Simple"
+            ? Number(iniData?.SimpleOutput?.ABitrate ?? 0)
+            : Number(iniData?.AdvOut?.Track1Bitrate ?? 0);
         const comment = rules.audio[channelType].comment.bitrate;
         return actualBitrate === expectedBitrate
             ? [`音声ビットレート：${actualBitrate} kbps → OK！`, false]
@@ -286,7 +289,8 @@ export default function App() {
             diagnoseRateControl(),
             diagnoseKeyframe(),
             diagnoseProfile(),
-            diagnoseSampleRate()
+            diagnoseSampleRate(),
+            diagnoseAudioBitrate(),
         ];
 
         const warnCount = results.filter(([, isWarn]) => isWarn).length;
@@ -386,19 +390,18 @@ export default function App() {
                         <li>{diagnoseAudioBitrate()[0]}</li>
                     </ul>
                     {renderNetworkDiag()}
-
-                    <p style={{ marginTop: "2rem", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
-                        ※ このアプリは
-                        <a href="https://support.google.com/youtube/answer/2853702?hl=ja" target="_blank" rel="noopener noreferrer">
-                            このページ
-                        </a>
-                        の情報に基づく YouTube LIVE 専用アプリです。 Twitch などの別プラットフォームについては別途ご確認ください。
-                    </p>
-                    <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                        © 2025 AllegroMoltoV
-                    </p>
                 </div>
             )}
+            <p style={{ marginTop: "2rem", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
+                ※ このアプリは
+                <a href="https://support.google.com/youtube/answer/2853702?hl=ja" target="_blank" rel="noopener noreferrer">
+                    このページ
+                </a>
+                の情報に基づく YouTube LIVE 専用アプリです。 Twitch などの別プラットフォームについては別途ご確認ください。
+            </p>
+            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                © 2025 AllegroMoltoV
+            </p>
         </div>
     );
 }
