@@ -16,6 +16,12 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+
+  --text-primary: rgba(255, 255, 255, 0.87);
+  --text-secondary: #aaa;
+  --text-muted: #777;
+  --text-important: #EF9A9A;
+  --bg-color: #242424;
 }
 
 a {
@@ -81,6 +87,11 @@ code {
   :root {
     color: #213547;
     background-color: #ffffff;
+    --text-primary: #213547;
+    --text-secondary: #444;
+    --text-muted: #888;
+    --text-important: #D32F2F;
+    --bg-color: #ffffff;
   }
   a:hover {
     color: #747bff;
