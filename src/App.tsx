@@ -308,11 +308,11 @@ export default function App() {
             />
 
             {!selectedProfile && (
-                <p style={{ color: "red" }}>OBS を一度も起動していないか、プロファイルが削除されてるかも？</p>
+                <p style={{ color: "var(--text-important)" }}>OBS を一度も起動していないか、プロファイルが削除されてるかも？</p>
             )}
 
             {selectedProfile && iniData === null && (
-                <p style={{ color: "red" }}>
+                <p style={{ color: "var(--text-important)" }}>
                     このプロファイルには `basic.ini` が存在しないか、読み込みに失敗しました。<br />
                     OBS を一度起動してプロファイルを初期化してください。
                 </p>
@@ -343,14 +343,14 @@ export default function App() {
                     </ul>
                     {renderNetworkDiag()}
 
-                    <p style={{ marginTop: "2rem", fontSize: "0.9rem", color: "#555" }}>
+                    <p style={{ marginTop: "2rem", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
                         ※ このアプリは
                         <a href="https://support.google.com/youtube/answer/2853702?hl=ja" target="_blank" rel="noopener noreferrer">
                             このページ
                         </a>
                         の情報に基づく YouTube LIVE 専用アプリです。 Twitch などの別プラットフォームについては別途ご確認ください。
                     </p>
-                    <p style={{ fontSize: "0.8rem", color: "#999" }}>
+                    <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
                         © 2025 AllegroMoltoV
                     </p>
                 </div>
