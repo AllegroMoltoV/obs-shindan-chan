@@ -129,9 +129,10 @@ export default function App() {
             default: return "不明";
         }
     };
-    const extractNumericPrefix = (value: string | undefined): number => {
-        if (!value) return NaN;
-        const match = value.match(/^(\d+(\.\d+)?)/);
+    const extractNumericPrefix = (value: unknown): number => {
+        if (value === undefined || value === null) return NaN;
+        const str = String(value);
+        const match = str.match(/^(\d+(\.\d+)?)/);
         return match ? Number(match[0]) : NaN;
     };
     const getFps = (ini: any): number => {
