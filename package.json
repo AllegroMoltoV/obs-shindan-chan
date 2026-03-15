@@ -1,11 +1,38 @@
 {
   "name": "obs-shindan-chan",
-  "version": "1.1.4",
+  "version": "2.0.0",
   "productName": "OBS診断ちゃん",
-
+  "main": "dist-electron/main/index.js",
+  "description": "OBS Studio の配信設定を診断し、YouTube Live と Twitch 向けの推奨設定との差分を確認する Windows 向けツールです。",
+  "author": "AllegroMoltoV <v.molto.allegro@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AllegroMoltoV/obs-shindan-chan.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AllegroMoltoV/obs-shindan-chan/issues"
+  },
+  "homepage": "https://github.com/AllegroMoltoV/obs-shindan-chan#readme",
+  "debug": {
+    "env": {
+      "VITE_DEV_SERVER_URL": "http://127.0.0.1:7777/"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build && electron-builder --publish never",
+    "preview": "vite preview",
+    "pretest": "vite build --mode=test",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
   "build": {
     "appId": "com.allegromoltov.obsdiagnose",
     "productName": "OBS診断ちゃん",
+    "copyright": "Copyright (c) 2026 AllegroMoltoV",
     "directories": {
       "output": "dist-release",
       "buildResources": "build"
@@ -15,59 +42,60 @@
       "dist-electron",
       "build/icon.ico"
     ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "AllegroMoltoV",
+        "repo": "obs-shindan-chan"
+      }
+    ],
     "win": {
       "icon": "build/icon.ico",
-      "target": "nsis",
-      "artifactName": "OBS診断ちゃん_${version}.exe"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "OBS診断ちゃん_${version}_win_${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     }
   },
-
-  "main": "dist-electron/main/index.js",
-  "description": "OBS の配信設定を診断するツールです",
-  "author": "AllegroMoltoV <v.molto.allegro@gmail.com>",
-  "license": "MIT",
-  "private": true,
-  "debug": {
-    "env": {
-      "VITE_DEV_SERVER_URL": "http://127.0.0.1:7777/"
-    }
-  },
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
-    "preview": "vite preview",
-    "pretest": "vite build --mode=test",
-    "test": "vitest run"
-  },
   "dependencies": {
-    "electron-updater": "^6.3.9",
-    "ini": "^5.0.0",
-    "wait-on": "^8.0.3"
+    "electron-updater": "^6.8.3",
+    "ini": "^6.0.0",
+    "wait-on": "^8.0.5"
   },
   "devDependencies": {
-    "@playwright/test": "^1.48.2",
+    "@playwright/test": "^1.58.2",
     "@types/ini": "^4.1.1",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
     "@types/wait-on": "^5.3.4",
-    "@vitejs/plugin-react": "^4.3.3",
-    "autoprefixer": "^10.4.20",
-    "electron": "^33.2.0",
-    "electron-builder": "^24.13.3",
-    "postcss": "^8.4.49",
-    "postcss-import": "^16.1.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.4.27",
+    "electron": "^41.0.2",
+    "electron-builder": "^26.8.1",
+    "postcss": "^8.5.8",
+    "postcss-import": "^16.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwindcss": "^3.4.15",
-    "typescript": "^5.4.2",
-    "vite": "^5.4.11",
-    "vite-plugin-electron": "^0.29.0",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21",
+    "vite-plugin-electron": "^0.29.1",
     "vite-plugin-electron-renderer": "^0.14.6",
-    "vitest": "^2.1.5"
+    "vitest": "^2.1.9"
   }
 }

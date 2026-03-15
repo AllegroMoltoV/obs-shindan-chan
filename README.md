@@ -1,91 +1,79 @@
-# electron-vite-react
+# OBS診断ちゃん
 
-[![awesome-vite](https://awesome.re/mentioned-badge.svg)](https://github.com/vitejs/awesome-vite)
-![GitHub stars](https://img.shields.io/github/stars/caoxiemeihao/vite-react-electron?color=fa6470)
-![GitHub issues](https://img.shields.io/github/issues/caoxiemeihao/vite-react-electron?color=d8b22d)
-![GitHub license](https://img.shields.io/github/license/caoxiemeihao/vite-react-electron)
-[![Required Node.JS >= 14.18.0 || >=16.0.0](https://img.shields.io/static/v1?label=node&message=14.18.0%20||%20%3E=16.0.0&logo=node.js&color=3f893e)](https://nodejs.org/about/releases)
+OBS Studio の配信設定を診断し、配信先ガイドラインとの差分を分かりやすく確認する Windows 向けデスクトップアプリです。YouTube Live と Twitch のモードを切り替えながら、配信先ごとに違う推奨設定を確認できます。
 
-English | [简体中文](README.zh-CN.md)
+## できること
 
-## 👀 Overview
+- OBS のプロファイル一覧を読み取り、対象プロファイルを選択できます
+- `basic.ini` と `streamEncoder.json` を解析し、映像・音声・ネットワーク設定を診断できます
+- 解像度、FPS、映像ビットレート、音声ビットレート、サンプルレート、キーフレーム間隔、レート制御、プロファイル設定を確認できます
+- プロファイル更新を監視し、設定変更後に再診断できます
 
-📦 Ready out of the box  
-🎯 Based on the official [template-react-ts](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts), project structure will be familiar to you  
-🌱 Easily extendable and customizable  
-💪 Supports Node.js API in the renderer process  
-🔩 Supports C/C++ native addons  
-🐞 Debugger configuration included  
-🖥 Easy to implement multiple windows  
+## 対応環境
 
-## 🛫 Quick Setup
+- OS: Windows
+- OBS Studio のプロファイルが `%AppData%/obs-studio/basic/profiles` に存在すること
+- Node.js と npm は開発時のみ必要です
 
-```sh
-# clone the project
-git clone https://github.com/electron-vite/electron-vite-react.git
+## スクリーンショット
 
-# enter the project directory
-cd electron-vite-react
+スクリーンショットは `v2.0.0` に向けて更新予定です。現時点では、配信先選択画面と診断画面の UI を先行して整備しています。
 
-# install dependency
+## 診断ロジック
+
+- 映像ビットレートは解像度と FPS の組み合わせごとの推奨帯域と比較します
+- 詳細出力モードではレート制御が CBR かどうかを確認します
+- キーフレーム間隔は配信先ガイドラインの推奨値と比較します
+- H.264 プロファイル設定をチェックします
+- 音声はチャンネル構成に応じてサンプルレートとビットレートを確認します
+- 簡易ネットワーク診断として ping と接続種別を表示します
+
+YouTube Live は解像度別の推奨ビットレート表を使い、Twitch は 6000kbps 上限とエンコード条件を中心に別ルールセットとして診断します。
+
+## 配布手順
+
+今後の配布は OneDrive ではなく GitHub Releases を前提にします。現時点では手動公開を想定しています。
+
+1. `npm install`
+2. `npm run build`
+3. `dist-release` に生成された Windows インストーラを確認
+4. GitHub Releases で対象タグにアセットを手動アップロード
+
+自動更新は GitHub Releases を参照する構成に切り替えています。`latest.yml` とインストーラを同じリリースに配置する運用を想定しています。
+
+## 開発手順
+
+```bash
+git clone https://github.com/AllegroMoltoV/obs-shindan-chan.git
+cd obs-shindan-chan
 npm install
-
-# develop
 npm run dev
 ```
 
-## 🐞 Debug
+主要コマンド:
 
-![electron-vite-react-debug.gif](/electron-vite-react-debug.gif)
+- `npm run dev`: 開発モードで起動
+- `npm run build`: 本番ビルドと Windows インストーラ生成
+- `npm run test`: Vitest を実行
+- `npm run test:e2e`: Playwright による E2E テストを実行
 
-## 📂 Directory structure
+## リポジトリ方針
 
-Familiar React application structure, just with `electron` folder on the top :wink:  
-*Files in this folder will be separated from your React application and built into `dist-electron`*  
+- 配布物、ログ、一時ファイル、IDE 個別設定は Git 管理対象から除外します
+- 公開リポジトリとして読める README、Issue、PR テンプレートへ順次更新します
+- ライセンスは現行の MIT を仮置きとし、外部依存との整合を確認したうえで確定します
 
-```tree
-├── electron                                 Electron-related code
-│   ├── main                                 Main-process source code
-│   └── preload                              Preload-scripts source code
-│
-├── release                                  Generated after production build, contains executables
-│   └── {version}
-│       ├── {os}-{os_arch}                   Contains unpacked application executable
-│       └── {app_name}_{version}.{ext}       Installer for the application
-│
-├── public                                   Static assets
-└── src                                      Renderer source code, your React application
-```
+## 更新情報
 
-<!--
-## 🚨 Be aware
+### v2.0.0
 
-This template integrates Node.js API to the renderer process by default. If you want to follow **Electron Security Concerns** you might want to disable this feature. You will have to expose needed API by yourself.  
+- GitHub 公開を前提に README とリポジトリ設定を整理
+- GitHub Releases ベースの配布方針へ移行開始
+- Windows 向け配布設定と更新確認 UI を見直し
+- YouTube / Twitch のモード切り替え画面と別ルールセットを追加
 
-To get started, remove the option as shown below. This will [modify the Vite configuration and disable this feature](https://github.com/electron-vite/vite-plugin-electron-renderer#config-presets-opinionated).
+### v1.1.4
 
-```diff
-# vite.config.ts
-
-export default {
-  plugins: [
-    ...
--   // Use Node.js API in the Renderer-process
--   renderer({
--     nodeIntegration: true,
--   }),
-    ...
-  ],
-}
-```
--->
-
-## 🔧 Additional features
-
-1. electron-updater 👉 [see docs](src/components/update/README.md)
-1. playwright
-
-## ❔ FAQ
-
-- [C/C++ addons, Node.js modules - Pre-Bundling](https://github.com/electron-vite/vite-plugin-electron-renderer#dependency-pre-bundling)
-- [dependencies vs devDependencies](https://github.com/electron-vite/vite-plugin-electron-renderer#dependencies-vs-devdependencies)
+- OBS プロファイルの読み取りと基本診断機能を実装
+- YouTube Live を基準にした映像・音声・ネットワーク診断を実装
+- Electron + React ベースの Windows アプリとして初期版を作成

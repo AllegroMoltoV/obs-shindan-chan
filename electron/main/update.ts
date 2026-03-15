@@ -36,7 +36,15 @@ export function update(win: Electron.BrowserWindow) {
     try {
       return await autoUpdater.checkForUpdatesAndNotify()
     } catch (error) {
-      return { message: 'Network error', error }
+      const rawMessage = error instanceof Error ? error.message : String(error)
+      const isMissingReleaseFeed = rawMessage.includes('releases.atom') && rawMessage.includes('404')
+      const friendlyError = new Error(
+        isMissingReleaseFeed
+          ? 'GitHub Releases にまだ公開済みリリースがありません。初回リリース公開後に更新確認を利用できます。'
+          : '更新情報の取得に失敗しました。ネットワーク状態と GitHub Releases の公開状況を確認してください。',
+      )
+
+      return { message: friendlyError.message, error: friendlyError }
     }
   })
 

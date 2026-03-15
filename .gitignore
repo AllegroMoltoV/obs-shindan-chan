@@ -14,9 +14,12 @@ dist-electron
 dist-release
 release
 *.local
+.logs
+.tmp
+.appendix
 
 # Editor directories and files
-.vscode/.debug.env
+.vscode
 .idea
 .DS_Store
 *.suo
@@ -25,8 +28,7 @@ release
 *.sln
 *.sw?
 
-#lockfile
-package-lock.json
+# lockfile
 pnpm-lock.yaml
 yarn.lock
 /test-results/

@@ -1,12 +1,13 @@
-<!-- Thank you for contributing! -->
+## 概要
 
-### Description
+この PR で何を変更したかを記載してください。
 
-<!-- Please insert your description here and provide especially info about the "what" this PR is solving -->
+## 背景
 
-### What is the purpose of this pull request? <!-- (put an "X" next to an item) -->
+この変更が必要になった理由を記載してください。
 
-- [ ] Bug fix
-- [ ] New Feature
-- [ ] Documentation update
-- [ ] Other
+## 確認項目
+
+- [ ] 動作確認を実施した
+- [ ] 必要に応じて README や文言を更新した
+- [ ] 互換性や既存挙動への影響を確認した

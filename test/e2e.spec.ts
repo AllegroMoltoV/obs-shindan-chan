@@ -42,23 +42,39 @@ if (process.platform === 'linux') {
     await electronApp.close()
   })
 
-  describe('[electron-vite-react] e2e tests', async () => {
+  describe('[obs-shindan-chan] e2e tests', async () => {
     test('startup', async () => {
       const title = await page.title()
-      expect(title).eq('Electron + Vite + React')
+      expect(title).eq('OBS診断ちゃん')
     })
 
-    test('should be home page is load correctly', async () => {
+    test('should load the app header', async () => {
       const h1 = await page.$('h1')
       const title = await h1?.textContent()
-      expect(title).eq('Electron + Vite + React')
+      expect(title).contain('OBS診断ちゃん')
     })
 
-    test('should be count button can click', async () => {
-      const countButton = await page.$('button')
-      await countButton?.click()
-      const countValue = await countButton?.textContent()
-      expect(countValue).eq('count is 1')
+    test('should show the platform selection copy', async () => {
+      const bodyText = await page.textContent('body')
+      expect(bodyText).contain('配信先ごとに、OBS の設定を見直しやすくするための診断アプリです。')
+    })
+
+    test('should keep back link compact on diagnosis page', async () => {
+      await page.getByRole('button', { name: 'YouTube Live' }).click()
+
+      const metrics = await page.locator('.back-link').evaluate((element) => {
+        const rect = element.getBoundingClientRect()
+        const parentRect = element.parentElement?.getBoundingClientRect()
+        return {
+          width: rect.width,
+          parentWidth: parentRect?.width ?? 0,
+          text: element.textContent ?? '',
+        }
+      })
+
+      expect(metrics.text).contain('配信先を選び直す')
+      expect(metrics.width).lessThan(240)
+      expect(metrics.parentWidth).greaterThan(metrics.width * 2)
     })
   })
 }

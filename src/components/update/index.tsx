@@ -43,8 +43,8 @@ const Update = () => {
     if (arg1.update) {
       setModalBtn(state => ({
         ...state,
-        cancelText: 'Cancel',
-        okText: 'Update',
+        cancelText: '閉じる',
+        okText: 'ダウンロード',
         onOk: () => window.ipcRenderer.invoke('start-download'),
       }))
       setUpdateAvailable(true)
@@ -64,12 +64,12 @@ const Update = () => {
 
   const onUpdateDownloaded = useCallback((_event: Electron.IpcRendererEvent, ...args: any[]) => {
     setProgressInfo({ percent: 100 })
-    setModalBtn(state => ({
-      ...state,
-      cancelText: 'Later',
-      okText: 'Install now',
-      onOk: () => window.ipcRenderer.invoke('quit-and-install'),
-    }))
+      setModalBtn(state => ({
+        ...state,
+        cancelText: 'あとで',
+        okText: '今すぐ再起動',
+        onOk: () => window.ipcRenderer.invoke('quit-and-install'),
+      }))
   }, [])
 
   useEffect(() => {
@@ -100,17 +100,17 @@ const Update = () => {
         <div className='modal-slot'>
           {updateError
             ? (
-              <div>
-                <p>Error downloading the latest version.</p>
-                <p>{updateError.message}</p>
-              </div>
-            ) : updateAvailable
+                <div>
+                  <p>更新情報の取得またはダウンロードに失敗しました。</p>
+                  <p>{updateError.message}</p>
+                </div>
+              ) : updateAvailable
               ? (
                 <div>
-                  <div>The last version is: v{versionInfo?.newVersion}</div>
+                  <div>新しいバージョンが見つかりました: v{versionInfo?.newVersion}</div>
                   <div className='new-version__target'>v{versionInfo?.version} -&gt; v{versionInfo?.newVersion}</div>
                   <div className='update__progress'>
-                    <div className='progress__title'>Update progress:</div>
+                    <div className='progress__title'>ダウンロード状況:</div>
                     <div className='progress__bar'>
                       <Progress percent={progressInfo?.percent} ></Progress>
                     </div>
@@ -118,12 +118,12 @@ const Update = () => {
                 </div>
               )
               : (
-                <div className='can-not-available'>{JSON.stringify(versionInfo ?? {}, null, 2)}</div>
+                <div className='can-not-available'>現在のバージョンは最新です。</div>
               )}
         </div>
       </Modal>
       <button disabled={checking} onClick={checkUpdate}>
-        {checking ? 'Checking...' : 'Check update'}
+        {checking ? '更新を確認中...' : '更新を確認'}
       </button>
     </>
   )
