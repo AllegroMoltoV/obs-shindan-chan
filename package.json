@@ -75,7 +75,7 @@
   "dependencies": {
     "electron-updater": "^6.8.3",
     "ini": "^6.0.0",
-    "wait-on": "^8.0.5"
+    "wait-on": "^9.0.4"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
