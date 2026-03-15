@@ -17,7 +17,7 @@ OBS Studio の配信設定を診断し、配信先ガイドラインとの差分
 
 ## スクリーンショット
 
-スクリーンショットは `v2.0.0` に向けて更新予定です。現時点では、配信先選択画面と診断画面の UI を先行して整備しています。
+![screenshot](https://www.allegromoltov.jp/_next/image?url=%2Fimg%2Fproduct-obs-shindan-chan.png&w=640&q=75)
 
 ## 診断ロジック
 
@@ -28,7 +28,7 @@ OBS Studio の配信設定を診断し、配信先ガイドラインとの差分
 - 音声はチャンネル構成に応じてサンプルレートとビットレートを確認します
 - 簡易ネットワーク診断として ping と接続種別を表示します
 
-YouTube Live は解像度別の推奨ビットレート表を使い、Twitch は 6000kbps 上限とエンコード条件を中心に別ルールセットとして診断します。
+YouTube Live は [解像度別の推奨ビットレート表](https://support.google.com/youtube/answer/2853702?hl=ja) を使い、Twitch は [6000kbps 上限とエンコード条件](https://help.twitch.tv/s/article/broadcasting-guidelines?language=ja) を中心に別ルールセットとして診断します。
 
 ## 配布手順
 
@@ -56,12 +56,6 @@ npm run dev
 - `npm run build`: 本番ビルドと Windows インストーラ生成
 - `npm run test`: Vitest を実行
 - `npm run test:e2e`: Playwright による E2E テストを実行
-
-## リポジトリ方針
-
-- 配布物、ログ、一時ファイル、IDE 個別設定は Git 管理対象から除外します
-- 公開リポジトリとして読める README、Issue、PR テンプレートへ順次更新します
-- ライセンスは現行の MIT を仮置きとし、外部依存との整合を確認したうえで確定します
 
 ## 更新情報
 
