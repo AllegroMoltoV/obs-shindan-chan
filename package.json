@@ -65,7 +65,7 @@
           ]
         }
       ],
-      "artifactName": "OBS診断ちゃん_${version}_win_${arch}.${ext}"
+      "artifactName": "obs-shindan-chan_${version}_win_${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,
